@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间线 · 北京科技大学校史档案</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            北科校史档案 <span>USTB History</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="timeline.html" class="active">时间线</a></li>
+            <li><a href="search.html">搜索</a></li>
+        </ul>
+    </nav>
+
+    <div class="container timeline-container">
+        <div class="section-header">
+            <h2>校史时间线</h2>
+            <p>从1895年北洋大学矿冶科到现代综合性大学，一览北科大发展全景</p>
+        </div>
+
+        <!-- 年代筛选导航 -->
+        <div class="era-nav" style="margin-bottom:16px;" id="eraFilter"></div>
+
+        <div id="timelineContent"></div>
+    </div>
+
+    <footer class="footer">
+        <p>北京科技大学 · 校史档案 &mdash; 记录钢铁摇篮的光辉历程</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let activeEra = null;
+
+        function renderTimeline(era) {
+            let data = era ? filterByEra(HISTORY_DATA, era) : HISTORY_DATA;
+            const grouped = groupByEra(data);
+
+            // 按年代顺序排列
+            const eraOrder = getAllEras();
+            let html = '';
+            for (const eraName of eraOrder) {
+                if (!grouped[eraName] || grouped[eraName].length === 0) continue;
+                html += '<div class="timeline-era">';
+                html += '<h3>' + eraName + '</h3>';
+                html += '<div class="timeline-list">';
+                html += grouped[eraName].map(d => renderTimelineItem(d)).join('');
+                html += '</div></div>';
+            }
+
+            if (data.length === 0) {
+                html = '<div class="empty-state"><h3>暂无数据</h3><p>请尝试其他筛选条件</p></div>';
+            }
+
+            document.getElementById('timelineContent').innerHTML = html;
+        }
+
+        // 年代筛选按钮
+        const allEras = getAllEras();
+        const eraFilter = document.getElementById('eraFilter');
+        eraFilter.innerHTML = '<button class="era-btn active" onclick="filterAll()">全部年代</button>' +
+            allEras.map(e => `<button class="era-btn" onclick="filterTimelineEra('${e}')">${e}</button>`).join('');
+
+        function filterAll() {
+            activeEra = null;
+            updateEraBtns();
+            renderTimeline(null);
+        }
+
+        function filterTimelineEra(era) {
+            if (activeEra === era) {
+                activeEra = null;
+            } else {
+                activeEra = era;
+            }
+            updateEraBtns();
+            renderTimeline(activeEra);
+        }
+
+        function updateEraBtns() {
+            const btns = document.querySelectorAll('#eraFilter .era-btn');
+            btns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === '全部年代' && !activeEra) btn.classList.add('active');
+                if (btn.textContent === activeEra) btn.classList.add('active');
+            });
+        }
+
+        // 初始渲染
+        renderTimeline(null);
+    </script>
+</body>
+</html>

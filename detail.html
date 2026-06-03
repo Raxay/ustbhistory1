@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">详情 · 北京科技大学校史档案</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            北科校史档案 <span>USTB History</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="timeline.html">时间线</a></li>
+            <li><a href="search.html">搜索</a></li>
+        </ul>
+    </nav>
+
+    <div class="container detail-page">
+        <div id="detailContent">
+            <div class="empty-state">
+                <h3>加载中...</h3>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>北京科技大学 · 校史档案 &mdash; 记录钢铁摇篮的光辉历程</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        function renderDetail() {
+            const id = parseInt(getUrlParam('id'));
+            const item = HISTORY_DATA.find(d => d.id === id);
+
+            if (!item) {
+                document.getElementById('detailContent').innerHTML = `
+                    <div class="empty-state">
+                        <h3>记录未找到</h3>
+                        <p>请求的校史记录不存在，请返回首页重新浏览。</p>
+                    </div>
+                `;
+                document.getElementById('pageTitle').textContent = '未找到 · 北京科技大学校史档案';
+                return;
+            }
+
+            document.getElementById('pageTitle').textContent = item.title + ' · 北京科技大学校史档案';
+
+            const tags = (item.tags || []).map(t => `<span class="card-tag">${t}</span>`).join('');
+            const yearStr = item.year + '年' + (item.month ? item.month + '月' : '');
+            const imageHtml = item.image ? `<img class="detail-image" src="${item.image}" alt="${item.title}" loading="lazy">` : '';
+            const contentHtml = item.content.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
+
+            // 相关事件
+            const related = getRelated(item);
+            let relatedHtml = '';
+            if (related.length > 0) {
+                relatedHtml = `
+                    <div class="related-section">
+                        <h3>相关事件</h3>
+                        <div class="related-grid">
+                            ${related.map(r => renderCard(r, false)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailContent').innerHTML = `
+                <div class="detail-header">
+                    <div class="detail-breadcrumb">
+                        <a href="index.html">首页</a> &rsaquo;
+                        <a href="search.html?era=${encodeURIComponent(item.era)}">${item.era}</a> &rsaquo;
+                        ${item.title}
+                    </div>
+                    <h1>${item.title}</h1>
+                    <div class="detail-meta">
+                        <span>${yearStr}</span>
+                        <span>${item.category}</span>
+                        <span>${item.era}</span>
+                    </div>
+                </div>
+
+                <div class="detail-content">
+                    ${imageHtml}
+                    ${contentHtml}
+
+                    <div class="detail-source">
+                        <strong>资料来源：</strong>${item.source}
+                    </div>
+                </div>
+
+                ${tags ? '<div style="max-width:760px;margin:24px auto 0;">' + tags + '</div>' : ''}
+                ${relatedHtml}
+            `;
+        }
+
+        renderDetail();
+    </script>
+</body>
+</html>

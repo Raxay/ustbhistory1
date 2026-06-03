@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索 · 北京科技大学校史档案</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            北科校史档案 <span>USTB History</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="timeline.html">时间线</a></li>
+            <li><a href="search.html" class="active">搜索</a></li>
+        </ul>
+    </nav>
+
+    <div class="container search-page">
+        <div class="section-header">
+            <h2>搜索与浏览</h2>
+            <p>查找校史事件、人物及相关资料</p>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="search-box" style="margin-bottom:24px;">
+            <input type="text" id="searchInput" placeholder="输入关键词搜索..."
+                   onkeydown="if(event.key==='Enter')applyFilters()">
+            <button onclick="applyFilters()">搜索</button>
+        </div>
+
+        <!-- 筛选器 -->
+        <div class="search-filter">
+            <label>年代：</label>
+            <select id="eraSelect" onchange="applyFilters()">
+                <option value="">全部年代</option>
+            </select>
+            <label>分类：</label>
+            <select id="categorySelect" onchange="applyFilters()">
+                <option value="">全部分类</option>
+            </select>
+        </div>
+
+        <!-- 结果 -->
+        <div class="search-count" id="searchCount"></div>
+        <div class="search-results" id="searchResults">
+            <div class="empty-state">
+                <h3>输入关键词开始搜索</h3>
+                <p>支持搜索事件名称、人名、关键词等</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>北京科技大学 · 校史档案 &mdash; 记录钢铁摇篮的光辉历程</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value;
+            const era = document.getElementById('eraSelect').value;
+            const category = document.getElementById('categorySelect').value;
+
+            let data = search(query);
+            data = filterByEra(data, era);
+            data = filterByCategory(data, category);
+
+            const countEl = document.getElementById('searchCount');
+            const resultsEl = document.getElementById('searchResults');
+
+            if (data.length === 0) {
+                countEl.textContent = '未找到匹配的记录';
+                resultsEl.innerHTML = '<div class="empty-state"><h3>未找到结果</h3><p>请尝试其他关键词或筛选条件</p></div>';
+            } else {
+                countEl.textContent = '找到 ' + data.length + ' 条记录';
+                resultsEl.innerHTML = data.map(d => renderCard(d)).join('');
+            }
+
+            // 更新 URL
+            const params = new URLSearchParams();
+            if (query) params.set('q', query);
+            if (era) params.set('era', era);
+            if (category) params.set('category', category);
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // 初始化筛选选项
+        function initFilters() {
+            const eraSelect = document.getElementById('eraSelect');
+            const categorySelect = document.getElementById('categorySelect');
+
+            getAllEras().forEach(era => {
+                const opt = document.createElement('option');
+                opt.value = era;
+                opt.textContent = era;
+                eraSelect.appendChild(opt);
+            });
+
+            getAllCategories().forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                categorySelect.appendChild(opt);
+            });
+
+            // 从 URL 读取搜索参数
+            const query = getSearchQuery();
+            if (query) {
+                document.getElementById('searchInput').value = query;
+            }
+            const urlEra = getUrlParam('era');
+            if (urlEra) {
+                document.getElementById('eraSelect').value = urlEra;
+            }
+            const urlCat = getUrlParam('category');
+            if (urlCat) {
+                document.getElementById('categorySelect').value = urlCat;
+            }
+
+            if (query || urlEra || urlCat) {
+                applyFilters();
+            }
+        }
+
+        initFilters();
+    </script>
+</body>
+</html>
